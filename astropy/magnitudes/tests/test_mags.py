@@ -27,9 +27,7 @@ _flux_obmag = u.Quantity([-7.71133775, -7.74133477, -7.71348466], u.mag)
     ('value', 'ans'),
     [(20, 20),
      (_flux_obmag, _flux_obmag.value),
-     (_flux_count, _flux_obmag.value),
-     ([_flux_obmag, [1, 2, 3], _flux_count],
-      [_flux_obmag.value, [1, 2, 3], _flux_obmag.value])])
+     (_flux_count, _flux_obmag.value)])
 def test_init(value, ans):
     """Test Magnitude class initialization."""
     magobj = m.Magnitude(value)
@@ -38,44 +36,24 @@ def test_init(value, ans):
 
 
 @pytest.mark.parametrize(
-    ('value', 'zpt', 'ans'),
-    [(_flux_count, 0, _flux_count.value),
-     (_flux_stmag, u.Quantity(-21.1, u.mag), _flux_flam.value)])
-def test_toflux_generic(value, zpt, ans):
-    """Test Magnitude to_flux() method."""
-    magobj = m.Magnitude(value)
-    flux = magobj.to_flux(zeropoint=zpt)
-    np.testing.assert_allclose(flux, ans)
-
-
-def test_toflux_exceptions():
-    """Test Magnitude to_flux() exceptions."""
-    magobj = m.Magnitude(_flux_obmag)
-
-    with pytest.raises(u.UnitsError):
-        flux = magobj.to_flux(zeropoint=u.Quantity(1.0, _flam))
-
-    with pytest.raises(ValueError):
-        flux = magobj.to_flux(zeropoint=[1, 2, 3])
-
-    with pytest.raises(ValueError):
-        flux = magobj.to_flux(zeropoint=_flux_stmag)
-
-    with pytest.raises(ValueError):
-        flux = magobj.to_flux(zeropoint='foo')
+    ('value', 'physical_unit', 'ans'),
+    [(_flux_count, u.count, _flux_count),
+     (_flux_stmag, u.Unit(m.ST), _flux_flam)])
+def test_flux_generic(value, physical_unit, ans):
+    """Test Magnitude flux method."""
+    magobj = m.Magnitude(value, physical_unit)
+    np.testing.assert_allclose(magobj.flux, ans.to(physical_unit))
 
 
 @pytest.mark.parametrize(('value'), [_flux_flam, _flux_stmag])
-def test_toflux_stmag(value):
+def test_flux_stmag(value):
     """Test STMAG to_flux() method."""
-    magobj = m.STMAG(value)
-    flux = magobj.to_flux()
-    np.testing.assert_allclose(flux, _flux_flam.value)
+    magobj = m.Magnitude(value, m.ST)
+    np.testing.assert_allclose(magobj.flux, _flux_flam.to(m.ST))
 
 
 @pytest.mark.parametrize(('value'), [_flux_fnu, _flux_abmag])
 def test_toflux_abmag(value):
     """Test STMAG to_flux() method."""
-    magobj = m.ABMAG(value)
-    flux = magobj.to_flux()
-    np.testing.assert_allclose(flux, _flux_fnu.value)
+    magobj = m.Magnitude(value, m.AB)
+    np.testing.assert_allclose(magobj.flux, _flux_fnu.to(m.AB))
