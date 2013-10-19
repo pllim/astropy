@@ -93,10 +93,6 @@ class Magnitude(u.Quantity):
         return self._physical_unit
 
     @property
-    def system(self):
-        return getattr(self.physical_unit, 'system', None)
-
-    @property
     def equivalencies(self):
         return [(u.mag, self.physical_unit,
                  lambda x: 10 ** (-0.4 * x),
@@ -249,35 +245,29 @@ class Magnitude(u.Quantity):
     dot = nansum = sum = cumsum = prod = cumprod = _not_implemented
 
     def __str__(self):
-        return "{0} {1:s}".format(self.value,
-                                  getattr(self._physical_unit, 'system', None)
-                                  or self.unit.to_string())
+        unitstr = self.unit.to_string()
+        if self.physical_unit != u.dimensionless_unscaled:
+            unitstr += '({0})'.format(self.physical_unit.to_string())
+        return "{0} {1:s}".format(self.value, unitstr)
 
     def __repr__(self):
         prefixstr = '<' + self.__class__.__name__ + ' '
         arrstr = np.array2string(self.view(np.ndarray), separator=',',
                                  prefix=prefixstr)
-        unitstr = (getattr(self._physical_unit, 'system', None) or
-                   self.unit.to_string())
+        unitstr = self.unit.to_string()
+        if self.physical_unit != u.dimensionless_unscaled:
+            unitstr += '({0})'.format(self.physical_unit.to_string())
 
         return prefixstr + arrstr + ' ' + unitstr + '>'
 
 
 class MagUnit(u.CompositeUnit):
 
-    _system = None
-
     def __init__(self, *args, **kwargs):
         """Define a unit corresponding to a Magnitude class"""
-        system = kwargs.pop('system', None)
         # couldn't get it to work subclassing from unit, so roundabout
-        unit = u.Unit(*args, **kwargs)
+        unit = u.Unit(*args, **kwargs) * u.dimensionless_unscaled
         super(MagUnit, self).__init__(unit.scale, unit.bases, unit.powers)
-        self._system = system
-
-    @property
-    def system(self):
-        return self._system
 
     def __mul__(self, other):
         # keep possible system attributes intact
@@ -306,13 +296,11 @@ class MagUnit(u.CompositeUnit):
         return super(MagUnit, self).__div__(other)
 
 
-ST = MagUnit(10.**(-0.4*21.1) * u.erg / u.cm**2 / u.s / u.AA,
-             system='STmag')
+ST = MagUnit(u.ST)
 
-AB = MagUnit(10.**(-0.4*48.60) * u.erg / u.cm**2 / u.s / u.Hz,
-             system='ABmag')
+AB = MagUnit(u.AB)
 
-inst = MagUnit(u.count / u.second, system='instmag')
+inst = MagUnit(u.count / u.second)
 
 mag = MagUnit(u.dimensionless_unscaled)
 
