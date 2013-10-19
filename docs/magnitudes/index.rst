@@ -64,7 +64,7 @@ appropriate equivalencies are automatically set up.  Some examples::
   <Quantity [ 100.,  10.] >
   >>> mag = m.Magnitude(100. * u.count / u.s)
   >>> mag
-  <Magnitude -5.0 mag>
+  <Magnitude -5.0 mag(ct / s)>
   >>> mag.flux
   <Quantity 100.0 ct / s>
   >>> mag.to(u.count / u.hr)
@@ -91,7 +91,7 @@ dimensionless quantities.  Examples::
   >>> from astropy import magnitudes as m
   >>> mag = m.Magnitude(100. * u.count / u.s)
   >>> mag + 2.5*u.mag
-  <Magnitude -2.5 mag>
+  <Magnitude -2.5 mag(ct / s)>
   >>> diff = mag - m.Magnitude(10. * u.count / u.s)
   >>> diff
   <Magnitude -2.5 mag>
@@ -127,26 +127,24 @@ of magnitude it is.  Examples::
   >>> from astropy import magnitudes as m
   >>> mag = 20. * m.ST
   >>> mag
-  <Magnitude 20.0 STmag>
+  <Magnitude 20.0 mag(ST)>
   >>> mag = m.Magnitude(u.Quantity(3.63e-9, u.erg / u.cm ** 2 / u.s / u.AA),
   ...                   m.ST)
-  >>> mag
-  <Magnitude 0.00023343740971541323 STMag>
-  >>> mag.flux
-  Quantity 0.9997850193117575 3.63078e-09 erg / (Angstrom cm2 s)>
-  >>> mag.flux.value, mag.flux.unit
-  (0.9997850193117575, Unit("3.63078e-09 erg / (Angstrom cm2 s)"))
-  >>> mag.to(u.erg/u.cm**2/u.s/u.AA)
-  <Quantity 3.6300000000000013e-09 erg / (Angstrom cm2 s)>
+  >>> mag                                 # doctest: +ELLIPSES
+  <Magnitude 0.0002334... mag(ST)>
+  >>> mag.flux                            # doctest: +ELLIPSES
+  <Quantity 0.9997850193117575 ST>
+  >>> mag.to(u.erg/u.cm**2/u.s/u.AA)      # doctest: +ELLIPSES
+  <Quantity 3.63000000...e-09 erg / (Angstrom cm2 s)>
 
   >>> mag = m.Magnitude(u.Quantity(3.63e-20, u.erg / u.cm ** 2 / u.s / u.Hz),
   ...                   m.AB)
-  >>> mag
-  <Magnitude 0.00023343740971553377 ABmag>
-  >>> mag.flux
-  <Quantity 0.9997850193117573 3.63078e-20 erg / (cm2 Hz s)>
-  >>> mag.to(u.kJy)
-  <Quantity 3.6299999999999994 kJy>
+  >>> mag                                 # doctest: +ELLIPSES
+  <Magnitude 0.000233... mag(AB)>
+  >>> mag.flux                            # doctest: +ELLIPSES
+  <Quantity 0.9997850... AB>
+  >>> mag.to(u.kJy)                       # doctest: +ELLIPSES
+  <Quantity 3.6299999... kJy>
 
 Instrumental and Custom Magnitudes
 ----------------------------------
@@ -157,16 +155,16 @@ Another predefined magnitude is :obj:`~astropy.units.magnitudes.mags.inst`::
   >>> from astropy import magnitudes as m
   >>> mag = -10. * m.inst
   >>> mag
-  <Magnitude -10.0 instmag>
+  <Magnitude -10.0 mag(ct / s)>
   >>> mag.flux
   <Quantity 10000.0 ct / s>
 
 One can also define custom units for magnitudes, as follows:
 
-  >>> mymagunit = m.MagUnit(u.photon/u.s, system='phmag')
+  >>> mymagunit = m.MagUnit(u.photon/u.s)
   >>> mag = -5. * mymagunit
   >>> mag
-  <Magnitude -5.0 phmag>
+  <Magnitude -5.0 mag(ph / s)>
   >>> mag.flux
   <Quantity 100. ph / s>
 
@@ -174,14 +172,14 @@ This can also be used to adjust zero points
 
   >>> zp = 0.*m.ST - (-12.*mymagunit)
   >>> zp
-  <Magnitude 12.0 mag>
+  <Magnitude 12.0 mag(s ST / ph)>
   >>> zp.flux
-  <Quantity 1.5848931924611107e-05 3.63078e-09 erg / (Angstrom cm2 ph)>
+  <Quantity 1.5848931924611107e-05 s ST / ph>
   >>> mag += zp
   >>> mag
-  <Magnitude 7.0 mag>
-  >>> mag.flux
-  <Quantity 0.0015848931924611126 3.63078e-09 erg / (Angstrom cm2 s)>
+  <Magnitude 7.0 mag(ST)>
+  >>> mag.flux                                 # doctest: +ELLIPSES
+  <Quantity 0.0015848... ST>
 
 
 See Also
