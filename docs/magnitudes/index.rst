@@ -25,59 +25,90 @@ Define a generic magnitude object and convert it to flux:
     >>> mag = m.Magnitude(-5)
     >>> mag
     <Magnitude -5 mag>
-    >>> mag.to_flux()
-    100.0
+    >>> mag.flux
+    <Quantity 100.0 >
 
 
 Using `astropy.magnitudes`
 ==========================
 
-Conversion between magnitude and flux, using zeropoint in the unit of magnitude:
+Conversion between magnitude and flux, using a reference physical unit:
 
 .. math::
 
-    mag = -2.5 \; log_{10} flux + zeropoint
+    mag = -2.5 \; log_{10} (f / f_{ref})
 
-    flux = 10^{-0.4 \; (mag - zeropoint)}
+    flux = 10^{-0.4 \; mag } f_{ref}
 
 
 Generic Magnitude System
 ------------------------
 
 In the generic magnitude system represented by
-`~astropy.magnitudes.mags.Magnitude`, the intrinsic zeropoint is 0 mag.
-However, for flexibility, its
-:func:`~astropy.magnitudes.mags.Magnitude.to_flux` method can take any
-user-defined zeropoint (in mag) for conversion to flux.
+:class:`~astropy.magnitudes.mags.Magnitude`, the default physical unit is 1
+(unscaled dimensionless).  However, if the value passed has a unit,
+that unit will be used.  Alternatively, for flexibility, one can pass
+on a specific physical unit, to which the value will be converted if
+it has a unit already (unless that unit is already a magnitude).  One
+can convert back to flux units with
+:object:`~astropy.magnitudes.mags.Magnitude.flux`, or by using the
+general :meth:`~astropy.units.quantity.Quantity.to` method, for which
+appropriate equivalencies are automatically set up.  Some examples::
 
-During initialization, if a `~astropy.units.quantity.Quantity` is given and
-its unit is not a magnitude, its value is assumed to be some kind of generic
-flux and converted to magnitude as such.
+  >>> from astropy import units as u
+  >>> from astropy import magnitudes as m
+  >>> mag = m.Magnitude([-5, -2.5])
+  >>> mag
+  <Magnitude [-5. ,-2.5] mag>
+  >>> mag.flux
+  <Quantity [ 100.,  10.] >
+  >>> mag = m.Magnitude(100. * u.count / u.s)
+  >>> mag
+  <Magnitude -5.0 mag>
+  >>> mag.flux
+  <Quantity 100.0 ct / s>
+  >>> mag.to(u.count / u.hr)
+  <Quantity 360000.0 ct / h>
 
-Examples
-^^^^^^^^
+Like for quantity, a short-cut for initialisation is provided, 
+:obj:`~astropy.magnitudes.mags.mag`, which returns a |Magnitude|
+instead of a |Quantity|:
 
->>> from astropy import units as u
->>> from astropy import magnitudes as m
->>> mag = m.Magnitude([-5, u.Quantity(100)])
->>> mag
-<Magnitude [-5.,-5.] mag>
->>> mag.to_flux()
-array([ 100.,  100.])
->>> mag.to_flux(zeropoint=-5)
-array([ 1.,  1.])
->>> mag + u.Quantity(5.0, u.mag)
-<Quantity [ 0., 0.] mag>
+  >>> 5. * m.mag
+  <Magnitude 5.0 mag>
+  >>> 5. * u.mag
+  <Quantity 5.0 mag>
+
+Magnitude Arithmetic
+--------------------
+
+Basic arithmatic with magnitudes is supported, with the physical unit
+suitably adapted for addition and subtraction.  However,
+multiplication and division is only allowed for magnitudes of
+dimensionless quantities.  Examples::
+
+  >>> from astropy import units as u
+  >>> from astropy import magnitudes as m
+  >>> mag = m.Magnitude(100. * u.count / u.s)
+  >>> mag + 2.5*u.mag
+  <Magnitude -2.5 mag>
+  >>> diff = mag - m.Magnitude(10. * u.count / u.s)
+  >>> diff
+  <Magnitude -2.5 mag>
+  >>> diff.flux
+  <Quantity 10.0 >
+  >>> diff * 0.1.
+  <Magnitude -0.25 mag>
+  >>> mag * 2.
+  ValueError: Cannot multiply magnitudes of quantities which are not dimensionless by anything
 
 
-STMAG and ABMAG
+STMag and ABMag
 ---------------
 
-The `~astropy.magnitudes.mags.STMAG` and `~astropy.magnitudes.mags.ABMAG`
-systems are primarily used in Hubble Space Telescope (HST) calibration.
-They are defined such that an object with a specific constant flux distribution
-at all wavelengths will have zero color at all wavelengths, as shown in the
-following table:
+STMag and ABMag are two magnitude systems defined such that an object
+with a specific constant flux distribution at all wavelengths will
+have zero color at all wavelengths:
 
 ====== =================================================================== ===============
 System Constant flux distribution                                          Zeropoint (mag)
@@ -86,27 +117,71 @@ STMAG  :math:`3.63 \times 10^{-9} \; erg \; cm^{-2} \; s^{-1} \; \AA^{-1}` -21.1
 ABMAG  :math:`3.63 \times 10^{-20} \; erg \; cm^{-2} \; s^{-1} \; Hz^{-1}` -48.6
 ====== =================================================================== ===============
 
-Examples
-^^^^^^^^
+For these, the magnitude system provides pre-set physical units, 
+:obj:`~astropy.magnitudes.mags.ST` and :obj:`~astropy.magnitudes.mags.AB`.
+These use the :class:`~astropy.magnitudes.mags.SystemUnit` to also set
+the name of the unit, so that the representation makes clear what type
+of magnitude it is.  Examples::
 
->>> from astropy import units as u
->>> from astropy import magnitudes as m
+  >>> from astropy import units as u
+  >>> from astropy import magnitudes as m
+  >>> mag = 20. * m.ST
+  >>> mag
+  <Magnitude 20.0 STmag>
+  >>> mag = m.Magnitude(u.Quantity(3.63e-9, u.erg / u.cm ** 2 / u.s / u.AA),
+  ...                   m.ST)
+  >>> mag
+  <Magnitude 0.00023343740971541323 STMag>
+  >>> mag.flux
+  Quantity 0.9997850193117575 3.63078e-09 erg / (Angstrom cm2 s)>
+  >>> mag.flux.value, mag.flux.unit
+  (0.9997850193117575, Unit("3.63078e-09 erg / (Angstrom cm2 s)"))
+  >>> mag.to(u.erg/u.cm**2/u.s/u.AA)
+  <Quantity 3.6300000000000013e-09 erg / (Angstrom cm2 s)>
 
-Using STMAG:
+  >>> mag = m.Magnitude(u.Quantity(3.63e-20, u.erg / u.cm ** 2 / u.s / u.Hz),
+  ...                   m.AB)
+  >>> mag
+  <Magnitude 0.00023343740971553377 ABmag>
+  >>> mag.flux
+  <Quantity 0.9997850193117573 3.63078e-20 erg / (cm2 Hz s)>
+  >>> mag.to(u.kJy)
+  <Quantity 3.6299999999999994 kJy>
 
->>> mag = m.STMAG(u.Quantity(3.63e-9, u.erg / u.cm ** 2 / u.s / u.AA))
->>> mag
-<STMAG 0.00023343740971526472 mag>
->>> mag.to_flux()
-3.6300000000000067e-09
+Instrumental and Custom Magnitudes
+----------------------------------
 
-Using ABMAG:
+Another predefined magnitude is :obj:`~astropy.units.magnitudes.mags.inst`::
 
->>> mag = m.ABMAG(u.Quantity(3.63e-20, u.erg / u.cm ** 2 / u.s / u.Hz))
->>> mag
-<ABMAG 0.000233437409711712 mag>
->>> mag.to_flux()
-3.630000000000007e-20
+  >>> from astropy import units as u
+  >>> from astropy import magnitudes as m
+  >>> mag = -10. * m.inst
+  >>> mag
+  <Magnitude -10.0 instmag>
+  >>> mag.flux
+  <Quantity 10000.0 ct / s>
+
+One can also define custom units for magnitudes, as follows:
+
+  >>> mymagunit = m.MagUnit(u.photon/u.s, system='phmag')
+  >>> mag = -5. * mymagunit
+  >>> mag
+  <Magnitude -5.0 phmag>
+  >>> mag.flux
+  <Quantity 100. ph / s>
+
+This can also be used to adjust zero points
+
+  >>> zp = 0.*m.ST - (-12.*mymagunit)
+  >>> zp
+  <Magnitude 12.0 mag>
+  >>> zp.flux
+  <Quantity 1.5848931924611107e-05 3.63078e-09 erg / (Angstrom cm2 ph)>
+  >>> mag += zp
+  >>> mag
+  <Magnitude 7.0 mag>
+  >>> mag.flux
+  <Quantity 0.0015848931924611126 3.63078e-09 erg / (Angstrom cm2 s)>
 
 
 See Also

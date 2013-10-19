@@ -410,7 +410,7 @@ class Quantity(np.ndarray):
             constructor will be used.
         """
         if equivalencies is None:
-            equivalencies = self._equivalencies
+            equivalencies = self.equivalencies
         new_val = self.unit.to(unit, self.value, equivalencies=equivalencies)
         return self.__quantity_instance__(new_val, unit,
                                           equivalencies=equivalencies,
@@ -509,7 +509,7 @@ class Quantity(np.ndarray):
             return []
         extra_members = set()
         for equivalent in self.unit._get_units_with_same_physical_type(
-                self._equivalencies):
+                self.equivalencies):
             extra_members.update(equivalent.names)
         return extra_members
 
