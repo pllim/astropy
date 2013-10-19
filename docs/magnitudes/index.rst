@@ -51,7 +51,7 @@ that unit will be used.  Alternatively, for flexibility, one can pass
 on a specific physical unit, to which the value will be converted if
 it has a unit already (unless that unit is already a magnitude).  One
 can convert back to flux units with
-:object:`~astropy.magnitudes.mags.Magnitude.flux`, or by using the
+:attr:`~astropy.magnitudes.mags.Magnitude.flux`, or by using the
 general :meth:`~astropy.units.quantity.Quantity.to` method, for which
 appropriate equivalencies are automatically set up.  Some examples::
 
@@ -71,7 +71,7 @@ appropriate equivalencies are automatically set up.  Some examples::
   <Quantity 360000.0 ct / h>
 
 Like for quantity, a short-cut for initialisation is provided, 
-:obj:`~astropy.magnitudes.mags.mag`, which returns a |Magnitude|
+:data:`~astropy.magnitudes.mags.mag`, which returns a |Magnitude|
 instead of a |Quantity|:
 
   >>> 5. * m.mag
@@ -117,11 +117,13 @@ STMAG  :math:`3.63 \times 10^{-9} \; erg \; cm^{-2} \; s^{-1} \; \AA^{-1}` -21.1
 ABMAG  :math:`3.63 \times 10^{-20} \; erg \; cm^{-2} \; s^{-1} \; Hz^{-1}` -48.6
 ====== =================================================================== ===============
 
-For these, the magnitude system provides pre-set physical units, 
-:obj:`~astropy.magnitudes.mags.ST` and :obj:`~astropy.magnitudes.mags.AB`.
-These use the :class:`~astropy.magnitudes.mags.SystemUnit` to also set
-the name of the unit, so that the representation makes clear what type
-of magnitude it is.  Examples::
+For these, the units system provides pre-set physical units, 
+:data:`~astropy.units.astrophys.ST` and
+:data:`~astropy.units.astrophys.AB`.  Using the
+:class:`~astropy.magnitudes.mags.MagUnit` class, these are
+converted to units that will set magnitudes,
+:data:`~astropy.magnitudes.mags.ST` and :data:`~astropy.magnitudes.mags.AB`.
+Examples::
 
   >>> from astropy import units as u
   >>> from astropy import magnitudes as m
@@ -149,7 +151,7 @@ of magnitude it is.  Examples::
 Instrumental and Custom Magnitudes
 ----------------------------------
 
-Another predefined magnitude is :obj:`~astropy.units.magnitudes.mags.inst`::
+Another predefined magnitude is :data:`~astropy.units.magnitudes.mags.inst`::
 
   >>> from astropy import units as u
   >>> from astropy import magnitudes as m
