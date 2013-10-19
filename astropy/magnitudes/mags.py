@@ -6,10 +6,12 @@ from __future__ import division, print_function
 import numpy as np
 
 # LOCAL
+from ..extern import six
 from .. import units as u
 
 
-__all__ = ['Magnitude', 'STMAG', 'ABMAG']
+__all__ = ['Magnitude', 'MagUnit', 'ST', 'AB', 'inst', 'mag']
+# 'STMag', 'ABMag'
 
 
 class Magnitude(u.Quantity):
@@ -30,6 +32,12 @@ class Magnitude(u.Quantity):
         creates a new `~astropy.units.quantity.Quantity` object, converting
         to magnitude as needed.
 
+    physical_unit : Unit or Quantity
+        Unit or flux corresponding to magnitude 0.  For instance,
+        AB magnitude : 3630*u.Jy
+        instrumental : u.count/u.second
+        extinction   : u.dimensionless_unscaled (or just '') [default]
+
     dtype : `~numpy.dtype`, optional
         The ``dtype`` of the resulting Numpy array or scalar that will
         hold the value.  If not provided, is is determined
@@ -47,153 +55,278 @@ class Magnitude(u.Quantity):
         Use with care.)
 
     """
-    _builtin_zpt = 0.0  # Used by subclass
 
-    def __new__(cls, value, dtype=None, equivalencies=[], copy=True):
-        from ..utils.misc import isiterable
+    _physical_unit = u.dimensionless_unscaled
 
-        if isiterable(value):
-            mags = [cls._from_flux(v) for v in value]
-        else:
-            mags = cls._from_flux(value)
+    def __new__(cls, value, physical_unit=None, dtype=None,
+                equivalencies=[], copy=True):
 
-        return super(Magnitude, cls).__new__(
-            cls, mags, unit=u.mag, dtype=dtype, equivalencies=equivalencies,
-            copy=copy)
+        # get input in a sane shape (merge sequences, etc.)
+        value_was_quantity = isinstance(value, u.Quantity)
+        value = u.Quantity(value)
 
-    @classmethod
-    def _from_flux(cls, value):
-        """Convert to magnitude.
-        No check on flux unit. Just matter if it is a magnitude or not.
-
-        Parameters
-        ----------
-        value : number or `~astropy.units.quantity.Quantity`
-
-        Returns
-        -------
-        mags : number
-
-        """
-        if isinstance(value, u.Quantity):
-            if value.unit.decompose() != u.mag:
-                mags = -2.5 * np.log10(value.value) + cls._builtin_zpt
+        if physical_unit is None:
+            if cls._physical_unit == u.dimensionless_unscaled:
+                physical_unit = value.unit
             else:
-                mags = value.value
+                physical_unit = cls._physical_unit
+
+        elif not isinstance(physical_unit, u.Unit):
+            physical_unit = u.Unit(physical_unit)
+
+        # if input was a Quantity, but not with magnitude units, assume it
+        # is a flux and convert it to a magnitude using the physical unit
+        # (this will rase UnitsError if inconsistent with physical_unit)
+        if value_was_quantity and value.unit.decompose() != u.mag:
+            value = -2.5 * np.log10(value / physical_unit)
+
+        self = super(Magnitude, cls).__new__(
+            cls, value.value, unit=u.mag, dtype=dtype,
+            equivalencies=equivalencies, copy=copy)
+
+        self._physical_unit = physical_unit
+
+        return self
+
+    @property
+    def physical_unit(self):
+        return self._physical_unit
+
+    @property
+    def system(self):
+        return getattr(self.physical_unit, 'system', None)
+
+    @property
+    def equivalencies(self):
+        return [(u.mag, self.physical_unit,
+                 lambda x: 10 ** (-0.4 * x),
+                 lambda x: -2.5*np.log10(x))]
+
+    @property
+    def flux(self):
+        """Convert magnitude to flux.
+
+        .. math::
+
+            flux = 10^{-0.4 \\; mag} * physical_unit
+        """
+        return self.to(self.physical_unit)
+
+    def __array_finalize__(self, obj):
+        super(Magnitude, self).__array_finalize__(obj)
+        if hasattr(obj, '_physical_unit'):
+            self._physical_unit = obj._physical_unit
+
+    def __quantity_view__(self, obj, unit):
+        # this will need to be overriden by subclasses to preserve class
+        if hasattr(unit, 'bases') and u.mag in unit.bases:
+            return obj.view(Magnitude)
         else:
-            mags = value
+            return super(Magnitude, self).__quantity_view__(obj, unit)
 
-        return mags
+    def __quantity_instance__(self, val, unit, **kwargs):
+        # this will need to be overriden by subclasses to preserve class
+        result = super(Magnitude, self).__quantity_instance__(val, unit,
+                                                              **kwargs)
+        if hasattr(unit, 'bases') and u.mag in unit.bases:
+            result.view(Magnitude)
+            result._physical_unit = self._physical_unit
 
-    def to_flux(self, zeropoint=0.0):
-        """Convert magnitude to flux.
+        return result
 
-        .. math::
+    def __add__(self, other):
+        # add magnitudes; this will check units of other (can be complex)
+        result = super(Magnitude, self).__add__(other)
+        # Make new magnitude with corresponding physical units multiplied
+        result._physical_unit = (self.physical_unit *
+                                 getattr(other, 'physical_unit',
+                                         u.dimensionless_unscaled))
+        return result
 
-            flux = 10^{-0.4 \\; (mag - zeropoint)}
+    def __radd__(self, other):
+        # this cannot happen unless other is a magnitude, in which case
+        # it would have reached other.__add__
+        return NotImplemented
 
-        Parameters
-        ----------
-        zeropoint : number or `~astropy.units.quantity.Quantity`
-            Magnitude zeropoint to apply.
+    def __iadd__(self, other):
+        # add magnitudes; this will check units of other (can be complex)
+        super(Magnitude, self).__iadd__(other)
+        # have corresponding physical units multiplied
+        self._physical_unit = (self.physical_unit *
+                               getattr(other, 'physical_unit',
+                                       u.dimensionless_unscaled))
+        return self
 
-        Returns
-        -------
-        flux : number
-            Flux values. No unit is provided, just the numbers.
+    def __sub__(self, other):
+        # subtract magnitudes; this will check units of other (can be complex)
+        result = super(Magnitude, self).__sub__(other)
+        # Make new magnitude with corresponding physical units multiplied
+        result._physical_unit = (self.physical_unit /
+                                 getattr(other, 'physical_unit',
+                                         u.dimensionless_unscaled))
+        return result
 
-        Raises
-        ------
-        astropy.units.core.UnitsError
-            Zeropoint unit is not a magnitude.
+    def __rsub__(self, other):
+        # this cannot happen unless other is a magnitude, in which case
+        # it would have reached other.__sub__
+        return NotImplemented
 
-        ValueError
-            Zeropoint value is not scalar or a valid number.
+    def __isub__(self, other):
+        # subtract magnitudes; this will check units of other (can be complex)
+        super(Magnitude, self).__isub__(other)
+        # have corresponding physical units divided
+        self._physical_unit = (self.physical_unit /
+                               getattr(other, 'physical_unit',
+                                       u.dimensionless_unscaled))
+        return self
 
-        """
-        if isinstance(zeropoint, u.Quantity):
-            if zeropoint.unit.decompose() != u.mag:
-                raise u.UnitsError(
-                    'Zeropoint {0} is not a magnitude.'.format(zeropoint))
-            zpt = zeropoint.value
-        else:
-            zpt = zeropoint
+    def __mul__(self, other):
+        if self._physical_unit != u.dimensionless_unscaled:
+            raise ValueError("Cannot multiply magnitudes of quantities which "
+                             "are not dimensionless by anything")
 
-        if not np.isscalar(zpt) or not isinstance(zpt, (int, long, float)):
-            raise ValueError('Zeropoint value {0} is invalid.'.format(zpt))
+        return super(Magnitude, self).__mul__(other)
 
-        return 10 ** (-0.4 * (self.value - zpt))
+    __rmul__ = __mul__
+
+    def __div__(self, other):
+        if self._physical_unit != u.dimensionless_unscaled:
+            raise ValueError("Cannot divide magnitudes of quantities which "
+                             "are not dimensionless by anything")
+
+        return super(Magnitude, self).__div__(other)
+
+    __truediv__ = __floordiv__ = __div__
+
+    def __rdiv__(self, other):
+        if self._physical_unit != u.dimensionless_unscaled:
+            raise ValueError("Cannot use magnitudes of quantities which "
+                             "are not dimensionless to divide into anything")
+
+        return super(Magnitude, self).__div__(other)
+
+    __rtruediv__ = __rfloordiv__ = __rdiv__
+
+    def __eq__(self, other):
+        if getattr(other, 'physical_unit', None) != self.physical_unit:
+            return False
+
+        return super(Magnitude, self).__eq__(other)
+
+    def __ne__(self, other):
+        if getattr(other, 'physical_unit', None) != self.physical_unit:
+            return True
+
+        return super(Magnitude, self).__ne__(other)
+
+    def __gt__(self, other):
+        if getattr(other, 'physical_unit', None) != self.physical_unit:
+            raise u.UnitsError("Cannot compare magnitudes based on different "
+                               "physical units")
+        return super(Magnitude, self).__gt__(other)
+
+    def __ge__(self, other):
+        if getattr(other, 'physical_unit', None) != self.physical_unit:
+            raise u.UnitsError("Cannot compare magnitudes based on different "
+                               "physical units")
+        return super(Magnitude, self).__ge__(other)
+
+    def __lt__(self, other):
+        if getattr(other, 'physical_unit', None) != self.physical_unit:
+            raise u.UnitsError("Cannot compare magnitudes based on different "
+                               "physical units")
+        return super(Magnitude, self).__lt__(other)
+
+    def __le__(self, other):
+        if getattr(other, 'physical_unit', None) != self.physical_unit:
+            raise u.UnitsError("Cannot compare magnitudes based on different "
+                               "physical units")
+        return super(Magnitude, self).__le__(other)
+
+    def _not_implemented(self, *args, **kwargs):
+        raise NotImplementedError
+
+    dot = nansum = sum = cumsum = prod = cumprod = _not_implemented
+
+    def __str__(self):
+        return "{0} {1:s}".format(self.value,
+                                  getattr(self._physical_unit, 'system', None)
+                                  or self.unit.to_string())
+
+    def __repr__(self):
+        prefixstr = '<' + self.__class__.__name__ + ' '
+        arrstr = np.array2string(self.view(np.ndarray), separator=',',
+                                 prefix=prefixstr)
+        unitstr = (getattr(self._physical_unit, 'system', None) or
+                   self.unit.to_string())
+
+        return prefixstr + arrstr + ' ' + unitstr + '>'
 
 
-class STMAG(Magnitude):
-    """This magnitude system is defined such that an object with
-    constant flux distribution
-    :math:`F_{\\lambda} = 3.63 \\times 10^{-9} \\; erg \\; cm^{-2} \\; s^{-1} \\; \\AA^{-1}`
-    at all wavelengths will have zero color at all wavelengths.
+class MagUnit(u.CompositeUnit):
 
-    If ``value`` given is a `~astropy.units.quantity.Quantity` but not
-    in the unit of magnitude, the following conversion is done:
+    _system = None
 
-    .. math::
+    def __init__(self, *args, **kwargs):
+        """Define a unit corresponding to a Magnitude class"""
+        system = kwargs.pop('system', None)
+        # couldn't get it to work subclassing from unit, so roundabout
+        unit = u.Unit(*args, **kwargs)
+        super(MagUnit, self).__init__(unit.scale, unit.bases, unit.powers)
+        self._system = system
 
-        mag = -2.5 \\times log_{10} flux - 21.1
+    @property
+    def system(self):
+        return self._system
 
-    Parameters
-    ----------
-    value, dtype, equivalencies, copy
-        See `Magnitude` for more information.
+    def __mul__(self, other):
+        # keep possible system attributes intact
+        if isinstance(other, u.UnitBase) and other == u.dimensionless_unscaled:
+            return self
+        elif (self == u.dimensionless_unscaled and
+              isinstance(other, MagUnit)):
+            return other
 
-    """
-    _builtin_zpt = -21.1
+        if not isinstance(other, (six.string_types, u.UnitBase)):
+            try:
+                return Magnitude(other, self)
+            except:
+                pass
 
-    def to_flux(self):
-        """Convert magnitude to flux.
+        return super(MagUnit, self).__mul__(other)
 
-        .. math::
+    def __rmul__(self, other):
+        return self.__mul__(other)
 
-            flux = 10^{-0.4 \\; (mag + 21.1)}
+    def __div__(self, other):
+        # keep possible system attributes intact
+        if other == u.dimensionless_unscaled:
+            return self
 
-        Returns
-        -------
-        flux : number
-            Flux values. No unit is provided, just the numbers.
-
-        """
-        return super(STMAG, self).to_flux(zeropoint=self._builtin_zpt)
+        return super(MagUnit, self).__div__(other)
 
 
-class ABMAG(Magnitude):
-    """This magnitude system is defined such that an object with
-    constant flux distribution
-    :math:`F_{\\nu} = 3.63 \\times 10^{-20} \\; erg \\; cm^{-2} \\; s^{-1} \\; Hz^{-1}`
-    at all wavelengths will have zero color at all wavelengths.
+ST = MagUnit(10.**(-0.4*21.1) * u.erg / u.cm**2 / u.s / u.AA,
+             system='STmag')
 
-    If ``value`` given is a `~astropy.units.quantity.Quantity` but not
-    in the unit of magnitude, the following conversion is done:
+AB = MagUnit(10.**(-0.4*48.60) * u.erg / u.cm**2 / u.s / u.Hz,
+             system='ABmag')
 
-    .. math::
+inst = MagUnit(u.count / u.second, system='instmag')
 
-        mag = -2.5 \\times log_{10} flux - 48.6
+mag = MagUnit(u.dimensionless_unscaled)
 
-    Parameters
-    ----------
-    value, dtype, equivalencies, copy
-        See `Magnitude` for more information.
+# class SystemMagnitude(Magnitude):
+#     def __str__(self):
+#         return u.Quantity.__str__(self)
 
-    """
-    _builtin_zpt = -48.6
+#     def __repr__(self):
+#         return u.Quantity.__repr__(self)
 
-    def to_flux(self):
-        """Convert magnitude to flux.
 
-        .. math::
+# class STMag(SystemMagnitude):
+#     _physical_unit = ST
 
-            flux = 10^{-0.4 \\; (mag + 48.6)}
 
-        Returns
-        -------
-        flux : number
-            Flux values. No unit is provided, just the numbers.
-
-        """
-        return super(ABMAG, self).to_flux(zeropoint=self._builtin_zpt)
+# class ABMag(SystemMagnitude):
+#     _physical_unit = AB
