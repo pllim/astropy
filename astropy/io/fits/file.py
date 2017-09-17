@@ -120,7 +120,7 @@ class _File(object):
             raise ValueError("Mode '{}' not recognized".format(mode))
 
         # Handle raw URLs
-        if (isinstance(fileobj, string_types) and
+        if (isinstance(fileobj, str) and
             mode not in ('ostream', 'append', 'update') and _is_url(fileobj)):
             self.name = download_file(fileobj, cache=cache)
         # Handle responses from URL requests that have already been opened
@@ -152,7 +152,7 @@ class _File(object):
         # Initialize the internal self._file object
         if _is_random_access_file_backed(fileobj):
             self._open_fileobj(fileobj, mode, overwrite)
-        elif isinstance(fileobj, string_types):
+        elif isinstance(fileobj, str):
             self._open_filename(fileobj, mode, overwrite)
         else:
             self._open_filelike(fileobj, mode, overwrite)

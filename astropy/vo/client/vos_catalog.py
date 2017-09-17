@@ -678,11 +678,11 @@ def _get_catalogs(service_type, catalog_db, **kwargs):
         catalogs = catalog_db.get_catalogs()
     elif isinstance(catalog_db, VOSDatabase):
         catalogs = catalog_db.get_catalogs()
-    elif isinstance(catalog_db, (VOSCatalog, six.string_types)):
+    elif isinstance(catalog_db, (VOSCatalog, str)):
         catalogs = [(None, catalog_db)]
     elif isinstance(catalog_db, list):
         for x in catalog_db:
-            if (not isinstance(x, (VOSCatalog, six.string_types)) or
+            if (not isinstance(x, (VOSCatalog, str)) or
                     isinstance(x, VOSDatabase)):
                 raise VOSError('catalog_db must be a catalog database, '
                        'a list of catalogs, or a catalog')
@@ -867,7 +867,7 @@ def call_vo_service(service_type, catalog_db=None, pedantic=None,
         pedantic = votable_conf.pedantic
 
     for name, catalog in catalogs:
-        if isinstance(catalog, six.string_types):
+        if isinstance(catalog, str):
             if catalog.startswith("http"):
                 url = catalog
             else:

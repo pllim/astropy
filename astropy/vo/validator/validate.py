@@ -89,7 +89,7 @@ def check_conesearch_sites(destdir=os.curdir, verbose=True, parallel=True,
     if url_list == 'default':
         url_list = conf.conesearch_urls
 
-    if (not isinstance(destdir, six.string_types) or len(destdir) == 0 or
+    if (not isinstance(destdir, str) or len(destdir) == 0 or
             os.path.exists(destdir) and not os.path.isdir(destdir)):
         raise IOError('Invalid destination directory')  # pragma: no cover
 
