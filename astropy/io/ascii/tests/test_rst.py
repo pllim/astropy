@@ -1,9 +1,9 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
+from io import StringIO
 
 from ... import ascii
-from .common import (assert_equal, assert_almost_equal,
-                     setup_function, teardown_function)
+from .common import (assert_equal, assert_almost_equal)
 
 
 def assert_equal_splitlines(arg1, arg2):
@@ -139,12 +139,12 @@ def test_trailing_spaces_in_row_definition():
     """ Trailing spaces in the row definition column shouldn't matter"""
     table = """
 # comment (with blank line above)
-   ==== ==== ====    
+   ==== ==== ====
    Col1 Col2 Col3
-   ==== ==== ====  
+   ==== ==== ====
     3    3.4  foo
     1    4.5  bar
-   ==== ==== ====  
+   ==== ==== ====
 """  # noqa
     reader = ascii.get_reader(Reader=ascii.RST)
     dat = reader.read(table)
