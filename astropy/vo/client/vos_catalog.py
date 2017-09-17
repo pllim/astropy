@@ -707,7 +707,7 @@ def _vo_service_request(url, pedantic, kwargs, cache=True, verbose=False):
         raise InvalidAccessURL("url should already end with '?' or '&'")
 
     query = []
-    for key, value in six.iteritems(kwargs):
+    for key, value in kwargs.items():
         query.append('{0}={1}'.format(
             urllib.parse.quote(key), urllib.parse.quote_plus(str(value))))
 
