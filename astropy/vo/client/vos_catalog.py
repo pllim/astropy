@@ -2,8 +2,6 @@
 """Common utilities for accessing VO simple services."""
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
-from ...extern import six
-from ...extern.six.moves import urllib
 
 # STDLIB
 import fnmatch
@@ -12,6 +10,7 @@ import os
 import re
 import socket
 import warnings
+import urllib
 
 from collections import defaultdict
 from copy import deepcopy

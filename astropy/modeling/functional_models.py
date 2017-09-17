@@ -12,7 +12,6 @@ from .core import (Fittable1DModel, Fittable2DModel, Model,
                    ModelDefinitionError)
 from .parameters import Parameter, InputParameterError
 from .utils import ellipse_extent
-from ..extern.six.moves import map
 from ..stats.funcs import gaussian_sigma_to_fwhm
 from .. import units as u
 from ..units import Quantity, UnitsError

@@ -24,7 +24,6 @@ from .. import fitting, models
 from ..core import FittableModel
 from ..polynomial import PolynomialBase
 from ...utils import minversion
-from ...extern.six.moves import zip
 from ...utils import NumpyRNGContext
 
 try:
