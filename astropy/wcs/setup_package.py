@@ -1,7 +1,7 @@
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
 
-CONTACT = "Michael Droettboom"
-EMAIL = "mdroe@stsci.edu"
+CONTACT = "Astropy Project"
+EMAIL = "astropy@python.org"
 
 import io
 from os.path import join

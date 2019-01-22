@@ -1,6 +1,6 @@
 /*
- Author: Michael Droettboom
-         mdroe@stsci.edu
+ Author: Astropy Project
+         astropy@python.org
 */
 
 #ifndef __STR_LIST_PROXY_H__

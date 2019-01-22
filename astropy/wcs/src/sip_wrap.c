@@ -1,6 +1,6 @@
 /*
- Author: Michael Droettboom
-         mdroe@stsci.edu
+ Author: Astropy Project
+         astropy@python.org
 */
 
 #define NO_IMPORT_ARRAY
