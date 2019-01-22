@@ -1,8 +1,3 @@
-/*
- Author: Astropy Project
-         astropy@python.org
-*/
-
 #include "astropy_wcs/pipeline.h"
 #include "astropy_wcs/util.h"
 #include "wcserr.h"

@@ -1,8 +1,3 @@
-/*
- Author: Astropy Project
-         astropy@python.org
-*/
-
 #ifndef __PIPELINE_H__
 #define __PIPELINE_H__
 

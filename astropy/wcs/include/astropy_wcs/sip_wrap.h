@@ -1,8 +1,3 @@
-/*
- Author: Astropy Project
-         astropy@python.org
-*/
-
 #ifndef __SIP_WRAP_H__
 #define __SIP_WRAP_H__
 

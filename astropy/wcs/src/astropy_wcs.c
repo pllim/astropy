@@ -1,8 +1,3 @@
-/*
- Author: Astropy Project
-         astropy@python.org
-*/
-
 #include "astropy_wcs/astropy_wcs.h"
 #include "astropy_wcs/wcslib_wrap.h"
 #include "astropy_wcs/wcslib_tabprm_wrap.h"

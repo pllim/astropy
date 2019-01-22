@@ -1,8 +1,3 @@
-/*
- Author: Astropy Project
-         astropy@python.org
-*/
-
 #define NO_IMPORT_ARRAY
 
 /* util.h must be imported first */

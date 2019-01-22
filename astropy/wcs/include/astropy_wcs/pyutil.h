@@ -1,8 +1,3 @@
-/*
- Author: Astropy Project
-         astropy@python.org
-*/
-
 #ifndef __PYUTIL_H__
 #define __PYUTIL_H__
 

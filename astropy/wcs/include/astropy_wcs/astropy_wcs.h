@@ -1,8 +1,3 @@
-/*
- Author: Astropy Project
-         astropy@python.org
-*/
-
 #ifndef __ASTROPY_WCS_H__
 #define __ASTROPY_WCS_H__
 

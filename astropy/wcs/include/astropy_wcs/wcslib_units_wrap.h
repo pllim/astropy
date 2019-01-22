@@ -1,8 +1,3 @@
-/*
- Author: Astropy Project
-         astropy@python.org
-*/
-
 #ifndef __WCSLIB_UNITS_WRAP_H__
 #define __WCSLIB_UNITS_WRAP_H__
 

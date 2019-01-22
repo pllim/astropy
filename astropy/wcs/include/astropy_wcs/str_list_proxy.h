@@ -1,8 +1,3 @@
-/*
- Author: Astropy Project
-         astropy@python.org
-*/
-
 #ifndef __STR_LIST_PROXY_H__
 #define __STR_LIST_PROXY_H__
 

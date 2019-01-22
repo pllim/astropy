@@ -1,8 +1,3 @@
-/*
- Author: Astropy Project
-         astropy@python.org
-*/
-
 #ifndef __DISTORTION_WRAP_H__
 #define __DISTORTION_WRAP_H__
 
