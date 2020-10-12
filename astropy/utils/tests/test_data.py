@@ -1058,7 +1058,7 @@ def test_data_noastropy_fallback(monkeypatch):
 
     assert n_warns in (2, 4), f'Expected 2 or 4 warnings, got {n_warns}'
 
-    warning_msgs = [wl.message for wl in warning_lines]
+    warning_msgs = [str(wl.message) for wl in warning_lines]
 
     assert 'Remote data cache could not be accessed' in warning_msgs
     assert 'temporary' in warning_msgs
