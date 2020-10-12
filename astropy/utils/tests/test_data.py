@@ -1055,16 +1055,22 @@ def test_data_noastropy_fallback(monkeypatch):
     with pytest.warns(CacheMissingWarning) as warning_lines:
         fnout = download_file(TESTURL, cache=True)
     n_warns = len(warning_lines)
-    if n_warns == 2:
-        idx_w1 = 0
-        idx_w2 = 1
-    elif n_warns == 4:  # Two mysterious unclosed socket warnings sometimes
-        idx_w1 = 0
-        idx_w2 = 3
-    else:
-        raise AssertionError(f'Expected 2 or 4 warnings, got {n_warns}')
-    assert 'Remote data cache could not be accessed' in str(warning_lines[idx_w1].message)
-    assert 'temporary' in str(warning_lines[idx_w2].message)
+
+    assert n_warns in (2, 4), f'Expected 2 or 4 warnings, got {n_warns}'
+
+    warning_msgs = [wl.message for wl in warning_lines]
+
+    assert 'Remote data cache could not be accessed' in warning_msgs
+    assert 'temporary' in warning_msgs
+
+    if n_warns == 4:
+        # the two that are not accounted for above should be socket-related.
+        # Origin unclear, but see #10754
+        n_socket_warnings = 0
+        for wl in warning_lines:
+            if 'socket' in str(wl).lower():
+                n_socket_warnings += 1
+        assert n_socket_warnings == 2, 'Some of these warnings were unexpected:' + str(warning_lines)
 
     assert os.path.isfile(fnout)
 
