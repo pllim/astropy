@@ -1058,19 +1058,17 @@ def test_data_noastropy_fallback(monkeypatch):
 
     assert n_warns in (2, 4), f'Expected 2 or 4 warnings, got {n_warns}'
 
-    warning_msgs = [str(wl.message) for wl in warning_lines]
 
-    assert 'Remote data cache could not be accessed' in warning_msgs
-    assert 'temporary' in warning_msgs
-
+    partial_warn_msgs = ['remote data cache could not be accessed' ,'temporary file']
     if n_warns == 4:
-        # the two that are not accounted for above should be socket-related.
-        # Origin unclear, but see #10754
-        n_socket_warnings = 0
-        for wl in warning_lines:
-            if 'socket' in str(wl).lower():
-                n_socket_warnings += 1
-        assert n_socket_warnings == 2, 'Some of these warnings were unexpected:' + str(warning_lines)
+        partial_warn_msgs.extend(['socket', 'socket'])
+
+    for wl in warning_lines:
+        for i, partial_msg in enumerate(partial_warn_msgs):
+            if partial_msg in str(wl).lower():
+                del partial_warn_msgs[i]
+                break
+    assert len(partial_warn_msgs) == 0, 'Did not get some expected warnings:' + str(partial_warn_msgs)
 
     assert os.path.isfile(fnout)
 
