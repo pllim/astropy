@@ -13,7 +13,7 @@ import astropy.units as u
 from astropy.timeseries.periodograms.lombscargle import LombScargle
 from astropy.timeseries.periodograms.lombscargle._statistics import (fap_single, inv_fap_single,
                                                                      METHODS)
-from astropy.timeseries.periodograms.lombscargle.utils import convert_normalization, compute_chi2_ref
+from astropy.timeseries.periodograms.lombscargle.utils import convert_normalization, compute_chi2_ref  # noqa: E501
 
 METHOD_KWDS = dict(bootstrap={'n_bootstraps': 20, 'random_seed': 42})
 NORMALIZATIONS = ['standard', 'psd', 'log', 'model']
@@ -149,7 +149,7 @@ def test_false_alarm_smoketest(method, normalization, units):
         pytest.skip("SciPy required")
 
     kwds = METHOD_KWDS.get(method, None)
-    t, y, dy, fmax = make_data(units=units)
+    t, y, dy, fmax = make_data(rseed=42, units=units)
 
     ls = LombScargle(t, y, dy, normalization=normalization)
     freq, power = ls.autopower(maximum_frequency=fmax)
