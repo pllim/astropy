@@ -1,0 +1,26 @@
+name: Monthly cron
+
+on:
+  schedule:
+    # run every first day of the month at 1am UTC
+    - cron: '0 1 1 * *'
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/stale@v3
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        operations-per-run: 50
+        days-before-stale: 150
+        days-before-close: 30
+        stale-pr-label: 'Close?'
+        stale-pr-message: 'This pull request is stale because it has been open 150 days with no activity. Remove Close? label or comment or this will be closed in 30 days.'
+        close-pr-label: 'closed-by-bot'
+        close-pr-message: 'I am going to close this pull request as per my previous message, but if you feel that this issue should stay open, then feel free to re-open, remove Close? and closed-by-bot labels, and apply keep-open label.'
+        close-issue-label: 'closed-by-bot'
+        exempt-pr-labels:  'keep-open'
+        only-labels: 'Close?'
+        close-issue-message: 'I am going to close this issue because it was marked with Close?, but if you feel that this issue should stay open, then feel free to re-open, remove Close? and closed-by-bot labels, and apply keep-open label.'
+        exempt-issue-labels: 'keep-open'
