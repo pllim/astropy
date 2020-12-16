@@ -2,6 +2,8 @@
 Astropy
 =======
 
+w00t w00t
+
 |Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status|
 
 The Astropy Project (http://astropy.org/) is a community effort to develop a
