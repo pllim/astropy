@@ -2,7 +2,7 @@
 Astropy
 =======
 
-w00t w00t
+w00t
 
 |Actions Status| |CircleCI Status| |Coverage Status| |PyPI Status| |Documentation Status|
 
