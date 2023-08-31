@@ -139,7 +139,8 @@ jobs:
 
         # Windows wheels
 
-        - cp312*win32
+        # No NumPy wheel for win32
+        #- cp312*win32
 
         - cp312*win_amd64
 
