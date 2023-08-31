@@ -81,7 +81,7 @@ are not in the Cosmology constructor to the Cosmology's metadata.
 
     >>> cm2 = cm | {"extra": 42, "cosmology": "FlatLambdaCDM"}
     >>> cosmo = Cosmology.from_format(cm2, move_to_meta=True)
-    >>> cosmo.meta
+    >>> cosmo.meta  # doctest: +ELLIPSIS
     OrderedDict([('extra', 42), ...])
 
 Alternatively, the ``rename`` keyword argument can be used to rename keys in the mapping
@@ -250,7 +250,7 @@ def from_mapping(mapping, /, *, move_to_meta=False, cosmology=None, rename=None)
 
         >>> cm2 = cm | {"extra": 42, "cosmology": "FlatLambdaCDM"}
         >>> cosmo = Cosmology.from_format(cm2, move_to_meta=True)
-        >>> cosmo.meta
+        >>> cosmo.meta  # doctest: +ELLIPSIS
         OrderedDict([('extra', 42), ...])
 
     The ``rename`` keyword argument can be used to rename keys in the mapping to fields
@@ -342,7 +342,7 @@ def to_mapping(
     parameters as items, and the metadata as a nested dictionary.
 
         >>> from astropy.cosmology import Planck18
-        >>> Planck18.to_format('mapping')
+        >>> Planck18.to_format('mapping')  # doctest: +ELLIPSIS
         {'cosmology': <class 'astropy.cosmology...FlatLambdaCDM'>,
          'name': 'Planck18', 'H0': <Quantity 67.66 km / (Mpc s)>, 'Om0': 0.30966,
          'Tcmb0': <Quantity 2.7255 K>, 'Neff': 3.046,
@@ -352,7 +352,7 @@ def to_mapping(
     The dictionary type may be changed with the ``cls`` keyword argument:
 
         >>> from collections import OrderedDict
-        >>> Planck18.to_format('mapping', cls=OrderedDict)
+        >>> Planck18.to_format('mapping', cls=OrderedDict)  # doctest: +ELLIPSIS
         OrderedDict([('cosmology', <class 'astropy.cosmology...FlatLambdaCDM'>),
           ('name', 'Planck18'), ('H0', <Quantity 67.66 km / (Mpc s)>),
           ('Om0', 0.30966), ('Tcmb0', <Quantity 2.7255 K>), ('Neff', 3.046),
@@ -362,7 +362,7 @@ def to_mapping(
     Sometimes it is more useful to have the name of the cosmology class, not
     the type itself. The keyword argument ``cosmology_as_str`` may be used:
 
-        >>> Planck18.to_format('mapping', cosmology_as_str=True)
+        >>> Planck18.to_format('mapping', cosmology_as_str=True)  # doctest: +ELLIPSIS
         {'cosmology': 'FlatLambdaCDM', ...
 
     The metadata is normally included as a nested mapping. To move the metadata
@@ -373,14 +373,14 @@ def to_mapping(
     variable keyword-only argument -- ``**kwargs``).
 
         >>> from astropy.cosmology import Planck18
-        >>> Planck18.to_format('mapping', move_from_meta=True)
+        >>> Planck18.to_format('mapping', move_from_meta=True)  # doctest: +ELLIPSIS
         {'cosmology': <class 'astropy.cosmology...FlatLambdaCDM'>,
          'name': 'Planck18', 'Oc0': 0.2607, 'n': 0.9665, 'sigma8': 0.8102, ...
 
     Lastly, the keys in the mapping may be renamed with the ``rename`` keyword.
 
         >>> rename = {'cosmology': 'cosmo_cls', 'name': 'cosmo_name'}
-        >>> Planck18.to_format('mapping', rename=rename)
+        >>> Planck18.to_format('mapping', rename=rename)  # doctest: +ELLIPSIS
         {'cosmo_cls': <class 'astropy.cosmology...FlatLambdaCDM'>,
          'cosmo_name': 'Planck18', ...
     """

@@ -23,7 +23,7 @@ as columns.
 The cosmological class and other metadata, e.g. a paper reference, are in the Table's
 metadata.
 
-    >>> ct.meta
+    >>> ct.meta  # doctest: +ELLIPSIS
     OrderedDict([..., ('cosmology', 'FlatLambdaCDM')])
 
 
@@ -379,7 +379,7 @@ def to_table(cosmology, *args, cls=QTable, cosmology_in_meta=True, rename=None):
     The cosmological class and other metadata, e.g. a paper reference, are in
     the Table's metadata.
 
-        >>> ct.meta
+        >>> ct.meta  # doctest: +ELLIPSIS
         OrderedDict([..., ('cosmology', 'FlatLambdaCDM')])
 
     To move the cosmology class from the metadata to a Table column, set the

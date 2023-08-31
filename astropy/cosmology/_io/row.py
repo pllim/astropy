@@ -206,7 +206,7 @@ def to_row(cosmology, *args, cosmology_in_meta=False, table_cls=QTable, rename=N
     The cosmological class and other metadata, e.g. a paper reference, are in the
     Table's metadata.
 
-        >>> cr.meta
+        >>> cr.meta  # doctest: +ELLIPSIS
         OrderedDict([('Oc0', 0.2607), ('n', 0.9665), ...])
 
     To move the cosmology class from a column to the Table's metadata, set the
